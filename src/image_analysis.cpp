@@ -22,7 +22,8 @@ Mat pathDetection(Mat frame){
     threshold(frame_gray, frame_gray, 150, 255, CV_THRESH_BINARY);
     erode(frame_gray, frame_opened, getStructuringElement(MORPH_RECT, Size(8, 8)));
     dilate(frame_opened, frame_opened, getStructuringElement(MORPH_RECT, Size(50, 60)));
-    
+     
+     
     // Find countours
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
