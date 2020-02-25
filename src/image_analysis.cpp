@@ -18,10 +18,11 @@ Mat pathDetection(Mat frame){
     // Mat preparation for countours
     Mat frame_gray(frame.size(), CV_8UC1), frame_opened;
     cvtColor(frame, frame_gray, CV_RGB2GRAY);
+    medianBlur ( frame_gray, frame_gray, 9 );
     threshold(frame_gray, frame_gray, 150, 255, CV_THRESH_BINARY);
-    erode(frame_gray, frame_opened, getStructuringElement(MORPH_RECT, Size(2, 2)));
-    dilate(frame_opened, frame_opened, getStructuringElement(MORPH_RECT, Size(8, 8)));
-
+    erode(frame_gray, frame_opened, getStructuringElement(MORPH_RECT, Size(8, 8)));
+    dilate(frame_opened, frame_opened, getStructuringElement(MORPH_RECT, Size(50, 60)));
+    
     // Find countours
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
@@ -64,7 +65,7 @@ Mat pathDetection(Mat frame){
     Scalar green = Scalar( 0,255,0 );
     cv::line(drawing,Point(cols-1,righty),Point(0,lefty),green,2,8);
 
-    return drawing;
+    return drawing; 
 }
 
 
