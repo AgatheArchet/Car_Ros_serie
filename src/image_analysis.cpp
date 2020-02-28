@@ -19,11 +19,34 @@ Mat pathDetection(Mat frame){
     Mat frame_gray(frame.size(), CV_8UC1), frame_opened;
     cvtColor(frame, frame_gray, CV_RGB2GRAY);
     medianBlur ( frame_gray, frame_gray, 9 );
-    threshold(frame_gray, frame_gray, 150, 255, CV_THRESH_BINARY);
-    erode(frame_gray, frame_opened, getStructuringElement(MORPH_RECT, Size(8, 8)));
-    dilate(frame_opened, frame_opened, getStructuringElement(MORPH_RECT, Size(50, 60)));
-     
-     
+    //threshold(frame_gray, frame_gray, 150, 255, CV_THRESH_BINARY); 
+    //erode(frame_gray, frame_opened, getStructuringElement(MORPH_RECT, Size(8, 8)));
+    //dilate(frame_opened, frame_opened, getStructuringElement(MORPH_RECT, Size(50, 60)));
+
+    Mat edges;
+    Canny(frame_gray, edges, 50, 200);
+    
+    vector<Vec4i> lines;
+    HoughLinesP(edges, lines, 1, CV_PI/180, 25, 10, 250);
+    for (size_t i=0; i<lines.size(); i++) {
+        Vec4i l = lines[i];
+        line(frame, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 0, 0), 3, CV_AA);
+    }
+    return frame;
+    /*
+    
+
+    vector<Vec4i> lines2;
+    HoughLinesP(frame_gray, lines2, 1, CV_PI/180, 50, 50, 10 );
+
+    for( size_t i = 0; i < lines2.size(); i++ )
+    {
+      Vec4i l = lines2[i];
+      line( frame_gray, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
+    }
+    */
+
+    /*
     // Find countours
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
@@ -66,7 +89,7 @@ Mat pathDetection(Mat frame){
     Scalar green = Scalar( 0,255,0 );
     cv::line(drawing,Point(cols-1,righty),Point(0,lefty),green,2,8);
 
-    return drawing; 
+    return drawing; */
 }
 
 
