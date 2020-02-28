@@ -33,18 +33,6 @@ Mat pathDetection(Mat frame){
         line(frame, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 0, 0), 3, CV_AA);
     }
     return frame;
-    /*
-    
-
-    vector<Vec4i> lines2;
-    HoughLinesP(frame_gray, lines2, 1, CV_PI/180, 50, 50, 10 );
-
-    for( size_t i = 0; i < lines2.size(); i++ )
-    {
-      Vec4i l = lines2[i];
-      line( frame_gray, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
-    }
-    */
 
     /*
     // Find countours
