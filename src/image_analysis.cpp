@@ -19,7 +19,7 @@ Mat pathDetection(Mat frame){
     Mat frame_gray(frame.size(), CV_8UC1), frame_opened;
     cvtColor(frame, frame_gray, CV_RGB2GRAY);
     medianBlur ( frame_gray, frame_gray, 9 );
-    //threshold(frame_gray, frame_gray, 150, 255, CV_THRESH_BINARY); 
+    threshold(frame_gray, frame_gray, 150, 255, CV_THRESH_BINARY); 
     //erode(frame_gray, frame_opened, getStructuringElement(MORPH_RECT, Size(8, 8)));
     //dilate(frame_opened, frame_opened, getStructuringElement(MORPH_RECT, Size(50, 60)));
 
@@ -27,7 +27,7 @@ Mat pathDetection(Mat frame){
     Canny(frame_gray, edges, 50, 200);
     
     vector<Vec4i> lines;
-    HoughLinesP(edges, lines, 1, CV_PI/180, 25, 10, 250);
+    HoughLinesP(edges, lines, 1, CV_PI/180, 20, 150, 250);
     for (size_t i=0; i<lines.size(); i++) {
         Vec4i l = lines[i];
         line(frame, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 0, 0), 3, CV_AA);
@@ -40,10 +40,8 @@ Mat pathDetection(Mat frame){
     vector<Vec4i> hierarchy;
     RNG rng(12345);
     findContours( frame_opened, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-
     /// Get rotated rectangle that best fits the countours
     vector<RotatedRect> minRect( contours.size() );
-
     for( int i = 0; i < contours.size(); i++ )
      { 
         minRect[i] = minAreaRect( Mat(contours[i]) );
@@ -51,7 +49,6 @@ Mat pathDetection(Mat frame){
     
     /// Draw countours + rotated rectangle 
     Mat drawing = Mat::zeros( frame_opened.size(), CV_8UC3 );
-
     for( int i = 0; i< contours.size(); i++ )
     {
         Scalar white = Scalar( 255,255,255 );
@@ -65,7 +62,6 @@ Mat pathDetection(Mat frame){
             line( drawing, rect_points[j], rect_points[(j+1)%4], red, 2, 8 );
         }
     } 
-
     // Draw directional line 
     Mat line;
     vector<Point> cnt = contours.at(0);
@@ -76,8 +72,8 @@ Mat pathDetection(Mat frame){
     float righty = int(((cols-x)*vy/vx)+y);
     Scalar green = Scalar( 0,255,0 );
     cv::line(drawing,Point(cols-1,righty),Point(0,lefty),green,2,8);
-
     return drawing; */
+
 }
 
 
@@ -85,6 +81,11 @@ Mat pathDetection(Mat frame){
 int main(int argc, char **argv){
 
     Mat Image = cv::imread(argv[1], 1); //loads color if it is available
+    if (Image.empty()) {
+        cerr << "Error opening image" << endl;
+        exit(EXIT_FAILURE);
+    }
+
     Mat PathImage = pathDetection(Image);
     imshow("Contours",PathImage);
 
