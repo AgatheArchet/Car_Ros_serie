@@ -7,7 +7,7 @@ find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Test OpenGL)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(Traitement_Image src/image_analysis.cpp src/imgUtils.cpp src/imgUtils.h)
+add_executable(Traitement_Image src/image_analysis.cpp src/imgUtils.cpp src/imgUtils.h src/math.h src/math.cpp)
 target_link_libraries( Traitement_Image ${OpenCV_LIBS} )
 include_directories(${OpenCV_INCLUDE_DIRS})
 

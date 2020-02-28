@@ -1,6 +1,5 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-//#include "opencv2/imgcodecs.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "imgUtils.h"
 #include <iostream>
@@ -8,6 +7,8 @@
 #include <list>
 #include <limits>
 #include <math.h>
+#include <algorithm>    // std::min
+#include "math.h"
 
 
 using namespace std;
@@ -28,52 +29,55 @@ Mat pathDetection(Mat frame){
     
     vector<Vec4i> lines;
     HoughLinesP(edges, lines, 1, CV_PI/180, 20, 150, 250);
+    float x1,x2,y1,y2;
+    float n = 0,sumTheta =0,sumPosx=0;
+
     for (size_t i=0; i<lines.size(); i++) {
+
         Vec4i l = lines[i];
+        x1 = l[0],y1 = l[1],x2 = l[2],y2 = l[3];
+        cout << "angle = " << atan2(y2-y1,x2-x1)*180/M_PI << endl;
+        cout << "anglecondition = " << 70*M_PI/180 << endl;
+        if ( -50*M_PI/180 < sawtooth(atan2(y2-y1,x2-x1)) < 50*M_PI/180 )
+        {
+            sumTheta += atan2(y2-y1,x2-x1) + M_PI/2;
+            n += 1;
+            sumPosx += (x1+x2)/2 ;  
+        }
+
         line(frame, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 0, 0), 3, CV_AA);
     }
+
+    sumTheta = sumTheta/n;
+    sumPosx = sumPosx/n;
+    float PosxCentre = sumPosx - frame.cols/2 ;
+    float AngleLine = sumTheta*180/M_PI;
+
+    cout << "sumb = " << AngleLine << endl;
+    cout << "Position moyenne = " << PosxCentre << endl;
+    // cout << "n = " << n << endl;
+    // cout << "taille de la mat = " << frame.cols << endl;
+   
     return frame;
+}
 
-    /*
-    // Find countours
-    vector<vector<Point> > contours;
-    vector<Vec4i> hierarchy;
-    RNG rng(12345);
-    findContours( frame_opened, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-    /// Get rotated rectangle that best fits the countours
-    vector<RotatedRect> minRect( contours.size() );
-    for( int i = 0; i < contours.size(); i++ )
-     { 
-        minRect[i] = minAreaRect( Mat(contours[i]) );
-     }
-    
-    /// Draw countours + rotated rectangle 
-    Mat drawing = Mat::zeros( frame_opened.size(), CV_8UC3 );
-    for( int i = 0; i< contours.size(); i++ )
-    {
-        Scalar white = Scalar( 255,255,255 );
-        Scalar red = Scalar( 0,0,255 );
-        // countours
-        drawContours( drawing, contours, i, white, 2, 8, hierarchy, 0, Point() );
-        // rotated rectangle
-        Point2f rect_points[4]; minRect[i].points( rect_points );
-        for( int j = 0; j < 4; j++ )
-        {
-            line( drawing, rect_points[j], rect_points[(j+1)%4], red, 2, 8 );
+void choosePath(float &angle, float &absDiff, float &wheel_rotation){
+    // wheel_rotation should in [-10,10] deg
+    float sign;
+    if (absDiff > 0){
+        sign = 1.;
+    }else{
+        sign = -1.;
+    }
+    // First : change the orientation of the line according to the robot's frame if the angle of difference is too important
+    if(abs(angle)>5){
+        wheel_rotation = sign*0.5*std::min((float)20.,angle);
+    }else{
+        // Second : if the line is straight in the robots's frame, change the rotation accordingly to the line position (must reach 0)
+        if(abs(absDiff)>10){
+            wheel_rotation = 0.05*std::min((float)200.,absDiff);
         }
-    } 
-    // Draw directional line 
-    Mat line;
-    vector<Point> cnt = contours.at(0);
-    int rows =drawing.rows, cols = drawing.cols;
-    fitLine(cnt,line, CV_DIST_L2,0,0.01,0.01);
-    float vx = line.at<float>(0,0),vy = line.at<float>(1,0), x = line.at<float>(2,0), y = line.at<float>(3,0);
-    float lefty = int((-x*vy/vx) + y);
-    float righty = int(((cols-x)*vy/vx)+y);
-    Scalar green = Scalar( 0,255,0 );
-    cv::line(drawing,Point(cols-1,righty),Point(0,lefty),green,2,8);
-    return drawing; */
-
+    }
 }
 
 
@@ -88,6 +92,13 @@ int main(int argc, char **argv){
 
     Mat PathImage = pathDetection(Image);
     imshow("Contours",PathImage);
+
+    float angle, absDiff, wheel_rotation;
+
+    angle = 0;
+    absDiff = -150;
+    choosePath(angle, absDiff, wheel_rotation);
+    cout << "The wheels shoud rotate : " << wheel_rotation << " degrees." << endl;
 
     waitKey(0);
     
